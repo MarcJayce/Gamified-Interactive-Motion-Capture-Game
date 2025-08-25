@@ -1,0 +1,24 @@
+{
+  "name": "gamified-interactive-motion-capture-game",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MarcJayce/Gamified-Interactive-Motion-Capture-Game.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/MarcJayce/Gamified-Interactive-Motion-Capture-Game/issues"
+  },
+  "homepage": "https://github.com/MarcJayce/Gamified-Interactive-Motion-Capture-Game#readme",
+  "devDependencies": {
+    "concurrently": "^9.2.0"
+  }
+}
