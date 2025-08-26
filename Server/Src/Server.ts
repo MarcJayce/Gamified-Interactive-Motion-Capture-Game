@@ -1,8 +1,9 @@
 import express from 'express';
-import  admin  from './FireBase';
+import  admin  from './Firebase';
 
 
 const app = express();
+const port = 3001;
 app.use(express.json());
 
 app.get('/ping', (_, res) => res.send('pong'));
@@ -15,5 +16,6 @@ app.get('/users', async (_req, res) => {
   res.json(snapshot.val());
 });
 
-app.listen(3001, () => console.log('Server running on port 3001'));
-
+app.listen(port, () =>
+  console.log(`Server running on http://localhost:${port}`)
+);
