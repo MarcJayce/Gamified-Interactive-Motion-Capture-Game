@@ -29,7 +29,6 @@ const navigate = useNavigate();
   const handleSubmit = async(e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     console.log('Signup data:', formData);
-    // Firebase signup logic goes here
     try{
         const userCredential = await createUserWithEmailAndPassword(
           auth,
