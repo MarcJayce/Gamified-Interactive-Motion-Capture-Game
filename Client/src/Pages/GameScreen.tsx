@@ -1,0 +1,195 @@
+import  { useState, useEffect } from "react";
+import "../Page-Css/GameScreen.css";
+
+const API_KEY = "ca112b88-4188-439b-8a6b-6943e4b34e05";
+const POSETRACKER_API = "https://app.posetracker.com/pose_tracker/tracking";
+
+type PoseTrackerData = {
+  type?: string;
+  message?: string;
+  direction?: string;
+  ready?: boolean;
+  requirements?: string[];
+  current_count?: number;
+  finished?: boolean;
+};
+
+const exerciseOptions = [
+  "squat", "pushup", "jumpingjack", "lunge", "plank",
+  "armraise", "shoulderpress", "situp", "crunch",
+  "warriorpose", "treepose", "downwarddog",
+];
+
+const exerciseLabels: { [key: string]: string } = {
+  squat: "Squat",
+  pushup: "Push-Up",
+  jumpingjack: "Jumping Jack",
+  lunge: "Lunge",
+  plank: "Plank",
+  armraise: "Arm Raise",
+  shoulderpress: "Shoulder Press",
+  situp: "Sit-Up",
+  crunch: "Crunch",
+  warriorpose: "Warrior Pose",
+  treepose: "Tree Pose",
+  downwarddog: "Downward Dog",
+};
+
+const timeLimitOptions: { label: string; value: number }[] = [
+  { label: "0:30", value: 30 },
+  { label: "1:00", value: 60 },
+  { label: "2:00", value: 120 },
+];
+
+const Gamescreen = () => {
+  const [selectedExercise, setSelectedExercise] = useState<string | null>(null);
+  const [selectedDifficulty, setSelectedDifficulty] = useState<string | null>(null);
+  const [selectedTimeLimit, setSelectedTimeLimit] = useState<number | null>(null);
+  const [poseTrackerInfos, setPoseTrackerInfos] = useState<PoseTrackerData | null>(null);
+  const [repsCounter, setRepsCounter] = useState(0);
+  const [sessionStarted, setSessionStarted] = useState(false);
+  const [sessionFinished, setSessionFinished] = useState(false);
+  const [timer, setTimer] = useState(0);
+
+  const iframeUrl = `${POSETRACKER_API}?token=${API_KEY}&exercise=${selectedExercise}&difficulty=${selectedDifficulty}&width=${window.innerWidth}&height=${window.innerHeight}&isMobile=true`;
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (sessionStarted && !sessionFinished) {
+      interval = setInterval(() => {
+        setTimer((prev) => {
+          if (selectedTimeLimit && prev + 1 >= selectedTimeLimit) {
+            setSessionFinished(true);
+            clearInterval(interval);
+          }
+          return prev + 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [sessionStarted, sessionFinished, selectedTimeLimit]);
+
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      try {
+        const data: PoseTrackerData =
+          typeof event.data === "string" ? JSON.parse(event.data) : event.data;
+        setPoseTrackerInfos(data);
+
+        if (data.type === "counter" && typeof data.current_count === "number") {
+          setRepsCounter(data.current_count);
+        }
+
+        if (data.type === "posture" && !sessionStarted && data.ready === true) {
+          setSessionStarted(true);
+        }
+
+        if (data.finished === true) {
+          setSessionFinished(true);
+        }
+      } catch (err) {
+        console.error("Message parsing error:", err);
+      }
+    };
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, [sessionStarted]);
+
+  const formatTime = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
+  };
+
+  const resetSession = () => {
+    setSelectedExercise(null);
+    setSelectedDifficulty(null);
+    setSelectedTimeLimit(null);
+    setPoseTrackerInfos(null);
+    setRepsCounter(0);
+    setTimer(0);
+    setSessionStarted(false);
+    setSessionFinished(false);
+  };
+
+  return (
+    <div className="container">
+      {!selectedExercise || !selectedDifficulty || !selectedTimeLimit ? (
+        <div className="selection">
+          <h2>Choose Your Exercise</h2>
+          {exerciseOptions.map((ex) => (
+            <button
+              key={ex}
+              className={selectedExercise === ex ? "selected" : "option"}
+              onClick={() => setSelectedExercise(ex)}
+            >
+              {exerciseLabels[ex]}
+            </button>
+          ))}
+
+          <h2>Choose Difficulty</h2>
+          {["easy", "medium", "hard"].map((level) => (
+            <button
+              key={level}
+              className={selectedDifficulty === level ? "selected" : "option"}
+              onClick={() => setSelectedDifficulty(level)}
+            >
+              {level}
+            </button>
+          ))}
+
+          <h2>Choose Time Limit</h2>
+          {timeLimitOptions.map(({ label, value }) => (
+            <button
+              key={value}
+              className={selectedTimeLimit === value ? "selected" : "option"}
+              onClick={() => setSelectedTimeLimit(value)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      ) : sessionFinished ? (
+        <div className="summary">
+          <h2>🏁 Session Complete!</h2>
+          <p>Exercise: {exerciseLabels[selectedExercise]}</p>
+          <p>Difficulty: {selectedDifficulty}</p>
+          <p>Time Limit: {formatTime(selectedTimeLimit || 0)}</p>
+          <p>Total Reps: {repsCounter}</p>
+          <p>{repsCounter > 15 ? "🔥 Great job!" : "💪 Keep practicing!"}</p>
+          <button className="start" onClick={resetSession}>
+            Restart
+          </button>
+        </div>
+      ) : (
+        <>
+          <iframe
+            src={iframeUrl}
+            title="PoseTracker"
+            className="iframe"
+            allow="camera; microphone"
+          />
+          <div className="overlay">
+            {!sessionStarted ? (
+              <>
+                <p>🧍 Waiting for correct posture...</p>
+                <p>{poseTrackerInfos?.message || "Adjust your position to be detected"}</p>
+                <p>Expected Direction: {poseTrackerInfos?.direction || "Unknown"}</p>
+              </>
+            ) : (
+              <>
+                <p>Status: AI Running</p>
+                <p>Counter: {repsCounter}</p>
+                <p>
+                  ⏱️ Timer: {formatTime(timer)} / {formatTime(selectedTimeLimit || 0)}
+                </p>
+              </>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
+export default Gamescreen;

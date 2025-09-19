@@ -2,6 +2,7 @@ import './App.css'
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import LogInForm from './Pages/LoginForm'
 import SignupForm from './Pages/SignupForm';
+import GameScreen from './Pages/GameScreen';
 
 function App() {
 
@@ -10,6 +11,7 @@ function App() {
       <Routes>
         <Route path="/" element={<LogInForm />} />
         <Route path="/Signup" element={<SignupForm />} />
+        <Route path="/GameScreen" element={<GameScreen />} />
       </Routes>
     </BrowserRouter>
   )
