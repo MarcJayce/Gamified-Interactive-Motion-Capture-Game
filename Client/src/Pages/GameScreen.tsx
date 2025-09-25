@@ -1,5 +1,6 @@
 import  { useState, useEffect } from "react";
 import "../Page-Css/GameScreen.css";
+import axios from "axios";
 
 const API_KEY = "ca112b88-4188-439b-8a6b-6943e4b34e05";
 const POSETRACKER_API = "https://app.posetracker.com/pose_tracker/tracking";
@@ -14,26 +15,10 @@ type PoseTrackerData = {
   finished?: boolean;
 };
 
-const exerciseOptions = [
-  "squat", "pushup", "jumpingjack", "lunge", "plank",
-  "armraise", "shoulderpress", "situp", "crunch",
-  "warriorpose", "treepose", "downwarddog",
-];
-
-const exerciseLabels: { [key: string]: string } = {
-  squat: "Squat",
-  pushup: "Push-Up",
-  jumpingjack: "Jumping Jack",
-  lunge: "Lunge",
-  plank: "Plank",
-  armraise: "Arm Raise",
-  shoulderpress: "Shoulder Press",
-  situp: "Sit-Up",
-  crunch: "Crunch",
-  warriorpose: "Warrior Pose",
-  treepose: "Tree Pose",
-  downwarddog: "Downward Dog",
-};
+interface Exercise {
+  key: string;
+  label: string;
+}
 
 const timeLimitOptions: { label: string; value: number }[] = [
   { label: "0:30", value: 30 },
@@ -42,6 +27,7 @@ const timeLimitOptions: { label: string; value: number }[] = [
 ];
 
 const Gamescreen = () => {
+  const [exerciseList, setExerciseList] = useState<Exercise[]>([]);
   const [selectedExercise, setSelectedExercise] = useState<string | null>(null);
   const [selectedDifficulty, setSelectedDifficulty] = useState<string | null>(null);
   const [selectedTimeLimit, setSelectedTimeLimit] = useState<number | null>(null);
@@ -112,18 +98,32 @@ const Gamescreen = () => {
     setSessionFinished(false);
   };
 
+  useEffect(() => {
+    const fetchExercises = async () => {
+      try {
+        const response = await axios.get("http://localhost:3001/fetch");
+         console.log("Fetched:", response.data); 
+        setExerciseList(response.data.exercises);
+      } catch (error) {
+        console.error("Failed to fetch exercises:", error);
+      }
+    };
+
+    fetchExercises();
+
+  }, []);
   return (
     <div className="container">
       {!selectedExercise || !selectedDifficulty || !selectedTimeLimit ? (
         <div className="selection">
           <h2>Choose Your Exercise</h2>
-          {exerciseOptions.map((ex) => (
+          {Array.isArray(exerciseList) && exerciseList.map((ex) => (
             <button
-              key={ex}
-              className={selectedExercise === ex ? "selected" : "option"}
-              onClick={() => setSelectedExercise(ex)}
+              key={ex.key}
+              className={selectedExercise === ex.key ? "selected" : "option"}
+              onClick={() => setSelectedExercise(ex.key)}
             >
-              {exerciseLabels[ex]}
+              {ex.label}
             </button>
           ))}
 
@@ -152,7 +152,7 @@ const Gamescreen = () => {
       ) : sessionFinished ? (
         <div className="summary">
           <h2>🏁 Session Complete!</h2>
-          <p>Exercise: {exerciseLabels[selectedExercise]}</p>
+          <p>Exercise: {exerciseList.find(ex => ex.key === selectedExercise)?.label || "Unknown"}</p>
           <p>Difficulty: {selectedDifficulty}</p>
           <p>Time Limit: {formatTime(selectedTimeLimit || 0)}</p>
           <p>Total Reps: {repsCounter}</p>
