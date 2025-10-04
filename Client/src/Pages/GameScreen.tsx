@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import "../Page-Css/GameScreen.css";
 import axios from "axios";
 
-const API_KEY = "ca112b88-4188-439b-8a6b-6943e4b34e05";
-const POSETRACKER_API = "https://app.posetracker.com/pose_tracker/tracking";
+const API_KEY = import.meta.env.VITE_POSETRACKER_KEY;
+const POSETRACKER_API = import.meta.env.VITE_POSETRACKER_API;
 
 type Keypoint = {
   name: string;
