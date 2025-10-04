@@ -1,6 +1,6 @@
 import express from 'express';
 import  admin  from '../Src/Firebase';
-import { scoreRouter } from '../Routes/Score';
+import { gameSessionRouter } from '../Routes/GameSession';
 import { gamesRouter } from '../Routes/Games';
 import { fetchExerciseRouter } from '../Routes/FetchExercise';
 import cors from 'cors';
@@ -12,7 +12,7 @@ app.use(cors());
 
 // Routes
 
-app.use('/score', scoreRouter); 
+app.use('/gameSession', gameSessionRouter); 
 app.use('/exercise', gamesRouter);
 app.use('/fetch', fetchExerciseRouter);
 

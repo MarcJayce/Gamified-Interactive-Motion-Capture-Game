@@ -1,9 +1,16 @@
-import  { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import "../Page-Css/GameScreen.css";
 import axios from "axios";
 
 const API_KEY = "ca112b88-4188-439b-8a6b-6943e4b34e05";
 const POSETRACKER_API = "https://app.posetracker.com/pose_tracker/tracking";
+
+type Keypoint = {
+  name: string;
+  x: number;
+  y: number;
+  score: number;
+};
 
 type PoseTrackerData = {
   type?: string;
@@ -13,6 +20,7 @@ type PoseTrackerData = {
   requirements?: string[];
   current_count?: number;
   finished?: boolean;
+  data?: Keypoint[];
 };
 
 interface Exercise {
@@ -36,8 +44,9 @@ const Gamescreen = () => {
   const [sessionStarted, setSessionStarted] = useState(false);
   const [sessionFinished, setSessionFinished] = useState(false);
   const [timer, setTimer] = useState(0);
+  const [computedScore, setComputedScore] = useState<number | null>(null);
 
-  const iframeUrl = `${POSETRACKER_API}?token=${API_KEY}&exercise=${selectedExercise}&difficulty=${selectedDifficulty}&width=${window.innerWidth}&height=${window.innerHeight}&isMobile=true`;
+  const iframeUrl = `${POSETRACKER_API}?token=${API_KEY}&exercise=${selectedExercise}&difficulty=${selectedDifficulty}&width=${window.innerWidth}&height=${window.innerHeight}&isMobile=true&keypoints=true`;
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -57,6 +66,8 @@ const Gamescreen = () => {
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
+      console.log("PoseTracker message:", event.data); // Debug log
+
       try {
         const data: PoseTrackerData =
           typeof event.data === "string" ? JSON.parse(event.data) : event.data;
@@ -70,6 +81,13 @@ const Gamescreen = () => {
           setSessionStarted(true);
         }
 
+        if (data.type === "keypoints" && Array.isArray(data.data)) {
+          const scores = data.data.map((kp) => kp.score);
+          const avg = scores.reduce((sum, s) => sum + s, 0) / scores.length;
+          const scaled = Math.round(avg * 100);
+          setComputedScore(scaled);
+        }
+
         if (data.finished === true) {
           setSessionFinished(true);
         }
@@ -77,6 +95,7 @@ const Gamescreen = () => {
         console.error("Message parsing error:", err);
       }
     };
+
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
   }, [sessionStarted]);
@@ -96,13 +115,14 @@ const Gamescreen = () => {
     setTimer(0);
     setSessionStarted(false);
     setSessionFinished(false);
+    setComputedScore(null);
   };
 
   useEffect(() => {
     const fetchExercises = async () => {
       try {
         const response = await axios.get("http://localhost:3001/fetch");
-         console.log("Fetched:", response.data); 
+        console.log("Fetched:", response.data);
         setExerciseList(response.data.exercises);
       } catch (error) {
         console.error("Failed to fetch exercises:", error);
@@ -110,22 +130,23 @@ const Gamescreen = () => {
     };
 
     fetchExercises();
-
   }, []);
+
   return (
     <div className="container">
       {!selectedExercise || !selectedDifficulty || !selectedTimeLimit ? (
         <div className="selection">
           <h2>Choose Your Exercise</h2>
-          {Array.isArray(exerciseList) && exerciseList.map((ex) => (
-            <button
-              key={ex.key}
-              className={selectedExercise === ex.key ? "selected" : "option"}
-              onClick={() => setSelectedExercise(ex.key)}
-            >
-              {ex.label}
-            </button>
-          ))}
+          {Array.isArray(exerciseList) &&
+            exerciseList.map((ex) => (
+              <button
+                key={ex.key}
+                className={selectedExercise === ex.key ? "selected" : "option"}
+                onClick={() => setSelectedExercise(ex.key)}
+              >
+                {ex.label}
+              </button>
+            ))}
 
           <h2>Choose Difficulty</h2>
           {["easy", "medium", "hard"].map((level) => (
@@ -152,11 +173,20 @@ const Gamescreen = () => {
       ) : sessionFinished ? (
         <div className="summary">
           <h2>🏁 Session Complete!</h2>
-          <p>Exercise: {exerciseList.find(ex => ex.key === selectedExercise)?.label || "Unknown"}</p>
+          <p>Exercise: {exerciseList.find((ex) => ex.key === selectedExercise)?.label || "Unknown"}</p>
           <p>Difficulty: {selectedDifficulty}</p>
           <p>Time Limit: {formatTime(selectedTimeLimit || 0)}</p>
           <p>Total Reps: {repsCounter}</p>
-          <p>{repsCounter > 15 ? "🔥 Great job!" : "💪 Keep practicing!"}</p>
+          <p>Score: {computedScore !== null ? `${computedScore}/100` : "N/A"}</p>
+          <p>
+            {computedScore !== null
+              ? computedScore > 85
+                ? "🌟 Excellent form!"
+                : computedScore > 65
+                ? "👍 Good effort!"
+                : "🛠️ Needs improvement"
+              : ""}
+          </p>
           <button className="start" onClick={resetSession}>
             Restart
           </button>
@@ -183,6 +213,7 @@ const Gamescreen = () => {
                 <p>
                   ⏱️ Timer: {formatTime(timer)} / {formatTime(selectedTimeLimit || 0)}
                 </p>
+                <p>Live Score: {computedScore !== null ? `${computedScore}/100` : "Calculating..."}</p>
               </>
             )}
           </div>
