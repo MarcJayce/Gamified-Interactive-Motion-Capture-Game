@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {  signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebase';
 
@@ -11,6 +11,7 @@ const LogInForm = () => {
     remember: false,
   });
 
+  const navigate = useNavigate();
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -33,6 +34,7 @@ const LogInForm = () => {
       );
       console.log('Logged in:', userCredential.user);
 
+      navigate('/StudentDashboard');
       // Redirect or update UI after successful login
     } catch (err: unknown) {
       if (err instanceof Error) {

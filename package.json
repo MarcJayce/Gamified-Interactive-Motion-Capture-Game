@@ -22,5 +22,8 @@
   "homepage": "https://github.com/MarcJayce/Gamified-Interactive-Motion-Capture-Game#readme",
   "devDependencies": {
     "concurrently": "^9.2.0"
+  },
+  "dependencies": {
+    "lucide-react": "^0.544.0"
   }
 }

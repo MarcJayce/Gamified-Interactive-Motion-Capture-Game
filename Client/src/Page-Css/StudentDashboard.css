@@ -1,0 +1,145 @@
+#root {
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.student-dashboard {
+  width: 100vw;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  height: 90vh;
+  background: #29292c;
+  color: white;
+  font-family: system-ui, sans-serif;
+}
+
+.student-dashboard-header {
+  display: flex;
+  align-items: center;
+  background: #2a2a70;
+  padding: 0.8rem 1.5rem;
+  gap: 1rem;
+}
+
+.student-dashboard-logo {
+  font-size: 1.5rem;
+}
+
+.student-dashboard-title {
+  font-weight: bold;
+  font-size: 1.2rem;
+  flex-grow: 1;
+}
+
+.student-dashboard-tabs {
+  display: flex;
+  gap: 1rem;
+}
+
+.student-dashboard-tabs button {
+  background: none;
+  border: none;
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+  padding-bottom: 0.3rem;
+  border-bottom: 2px solid transparent;
+}
+
+.student-dashboard-tabs button.active {
+  border-bottom: 2px solid white;
+}
+
+.student-dashboard-main {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+.student-dashboard-activities {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+}
+
+.student-dashboard-card {
+  background: #3a3a90;
+  padding: 1rem;
+  border-radius: 12px;
+  text-align: center;
+  transition: transform 0.2s;
+}
+
+.student-dashboard-card:hover {
+  transform: translateY(-4px);
+}
+
+.student-dashboard-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.student-dashboard-name {
+  font-weight: bold;
+  margin-bottom: 0.3rem;
+}
+
+.student-dashboard-score {
+  font-size: 0.9rem;
+  color: #ccc;
+}
+
+.student-dashboard-actions {
+  margin-top: 2rem;
+  text-align: right;
+}
+
+.student-dashboard-start-btn {
+  background: #4a4aff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.8rem 1.5rem;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.student-dashboard-start-btn:hover {
+  background: #6363ff;
+}
+
+.student-dashboard-student {
+  background: #3a3a90;
+  padding: 1.5rem;
+  border-radius: 12px;
+  line-height: 1.6;
+}
+
+.student-dashboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #2d2a75;
+  color: white;
+  border-radius: 10px;
+  overflow: hidden;
+  text-align: center;
+}
+
+.student-dashboard-table th,
+.student-dashboard-table td {
+  padding: 10px;
+  border: 1px solid #444;
+  white-space: nowrap; 
+}
+
+.student-dashboard-table th {
+  background: #3a368b;
+  font-weight: bold;
+}
+
+
+
+
