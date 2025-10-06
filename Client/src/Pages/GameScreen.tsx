@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import "../Page-Css/GameScreen.css";
 import axios from "axios";
+import { auth } from "../firebase";
+
 
 const API_KEY = import.meta.env.VITE_POSETRACKER_KEY;
 const POSETRACKER_API = import.meta.env.VITE_POSETRACKER_API;
@@ -130,7 +132,33 @@ const Gamescreen = () => {
     };
 
     fetchExercises();
-  }, []);
+  }, 
+  
+  []);
+useEffect(() => {
+  const handleUpload = async () => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    try {
+      await axios.post("http://localhost:3001/gameSession", {
+        uid: user.uid,
+        Exercise: selectedExercise,
+        Difficulty: selectedDifficulty,
+        TimeLimit: selectedTimeLimit,
+        TotalReps: repsCounter,
+        Score: computedScore,
+      });
+      console.log("Session uploaded");
+    } catch (err) {
+      console.error("Upload failed:", err);
+    }
+  };
+
+  if (sessionFinished) {
+    handleUpload();
+  }
+}, [sessionFinished, selectedExercise, selectedDifficulty, selectedTimeLimit, repsCounter, computedScore]);
 
   return (
     <div className="container">

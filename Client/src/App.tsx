@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import LogInForm from './Pages/LoginForm'
 import SignupForm from './Pages/SignupForm';
 import GameScreen from './Pages/GameScreen';
+import RequireAuth from './Components/RequireAuth';
 
 function App() {
 
@@ -11,7 +12,14 @@ function App() {
       <Routes>
         <Route path="/" element={<LogInForm />} />
         <Route path="/Signup" element={<SignupForm />} />
-        <Route path="/GameScreen" element={<GameScreen />} />
+        <Route
+          path="/GameScreen"
+          element={
+            <RequireAuth>
+              <GameScreen />
+            </RequireAuth>
+          }
+        />
       </Routes>
     </BrowserRouter>
   )
