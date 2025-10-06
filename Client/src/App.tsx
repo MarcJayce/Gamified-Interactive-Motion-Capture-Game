@@ -4,6 +4,7 @@ import LogInForm from './Pages/LoginForm'
 import SignupForm from './Pages/SignupForm';
 import StudentDashboard from './Pages/StudentDashboard';
 import GameScreen from './Pages/GameScreen';
+import RequireAuth from './Components/RequireAuth';
 
 function App() {
 
@@ -14,6 +15,14 @@ function App() {
         <Route path="/Signup" element={<SignupForm />} />
         <Route path="/StudentDashboard" element={<StudentDashboard />} />
         <Route path="/GameScreen" element={<GameScreen />} />
+        <Route
+          path="/GameScreen"
+          element={
+            <RequireAuth>
+              <GameScreen />
+            </RequireAuth>
+          }
+        />
       </Routes>
     </BrowserRouter>
   )
