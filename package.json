@@ -21,9 +21,12 @@
   },
   "homepage": "https://github.com/MarcJayce/Gamified-Interactive-Motion-Capture-Game#readme",
   "devDependencies": {
+    "@types/cors": "^2.8.19",
     "concurrently": "^9.2.0"
   },
   "dependencies": {
+    "axios": "^1.12.2",
+    "cors": "^2.8.5",
     "lucide-react": "^0.544.0"
   }
 }
