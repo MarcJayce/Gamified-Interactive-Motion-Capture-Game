@@ -121,20 +121,31 @@ const Gamescreen = () => {
   };
 
   useEffect(() => {
-    const fetchExercises = async () => {
+    const fetchApprovedExercises = async () => {
       try {
-        const response = await axios.get("http://localhost:3001/fetch");
-        console.log("Fetched:", response.data);
-        setExerciseList(response.data.exercises);
+      
+        const configRes = await axios.get(
+          "http://localhost:3001/fetchApproved"
+        );
+        const approvedIds: string[] = configRes.data?.approvedIds ?? [];
+
+    
+        const allRes = await axios.get("http://localhost:3001/fetch");
+        const allExercises: Exercise[] = allRes.data?.exercises ?? [];
+
+
+        const filtered = allExercises.filter((ex) =>
+          approvedIds.includes(ex.key)
+        );
+        setExerciseList(filtered);
       } catch (error) {
-        console.error("Failed to fetch exercises:", error);
+        console.error("Failed to fetch approved exercises:", error);
       }
     };
 
-    fetchExercises();
-  }, 
-  
-  []);
+    fetchApprovedExercises();
+  }, []);
+
 useEffect(() => {
   const handleUpload = async () => {
     const user = auth.currentUser;
@@ -165,8 +176,7 @@ useEffect(() => {
       {!selectedExercise || !selectedDifficulty || !selectedTimeLimit ? (
         <div className="selection">
           <h2>Choose Your Exercise</h2>
-          {Array.isArray(exerciseList) &&
-            exerciseList.map((ex) => (
+          {exerciseList && exerciseList.map((ex) => (
               <button
                 key={ex.key}
                 className={selectedExercise === ex.key ? "selected" : "option"}

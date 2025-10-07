@@ -5,6 +5,7 @@ import SignupForm from './Pages/SignupForm';
 import StudentDashboard from './Pages/StudentDashboard';
 import GameScreen from './Pages/GameScreen';
 import RequireAuth from './Components/RequireAuth';
+import ContentManagement from './Components/ContentManagement';
 
 function App() {
 
@@ -23,6 +24,7 @@ function App() {
             </RequireAuth>
           }
         />
+        <Route path="/Exercises" element={<ContentManagement />} />
       </Routes>
     </BrowserRouter>
   )
