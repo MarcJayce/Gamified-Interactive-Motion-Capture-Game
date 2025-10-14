@@ -86,7 +86,7 @@ const StudentDashboard: React.FC = () => {
             className={tab === "student" ? "active" : ""}
             onClick={() => setTab("student")}
           >
-            Student Data
+            LEADERBOARDS
           </button>
         </nav>
       </header>
