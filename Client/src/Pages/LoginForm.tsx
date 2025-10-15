@@ -63,10 +63,7 @@
     };
 
     return (
-      <form
-        onSubmit={handleSubmit}
-        className="max-w-md mx-auto p-6 space-y-6"
-      >
+      <form onSubmit={handleSubmit} className="max-w-md mx-auto p-6 space-y-6">
         <h1 className="text-xl font-bold text-gray-900 dark:text-white text-center">
           Login to your account
         </h1>
@@ -86,7 +83,6 @@
             onChange={handleChange}
             className="w-full p-2.5 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Email"
-
             required
           />
         </div>
@@ -137,8 +133,7 @@
         </button>
 
         <p className="text-sm text-center text-gray-500 dark:text-gray-400">
-          Don't have an account yet?{' '}
-          <Link to="/Signup">Sign up</Link>
+          Don't have an account yet? <Link to="/StudentSignup">Sign up</Link>
         </p>
       </form>
     );

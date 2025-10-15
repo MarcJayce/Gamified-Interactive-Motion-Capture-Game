@@ -1,53 +1,53 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
-import { auth, db } from '../firebase';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
+import { auth, db } from "../firebase";
 
 const SignupForm = () => {
-const navigate = useNavigate();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    role: 'student',
+    email: "",
+    password: "",
+    confirmPassword: "",
+    role: "admin", // Automatically set to Teacher
     agreeToTerms: false,
   });
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = e.target;
-    setFormData(prev => ({
-      ...prev,  
-      [name]: type === 'checkbox'
-        ? (e.target as HTMLInputElement).checked
-        : value,
+    setFormData((prev) => ({
+      ...prev,
+      [name]:
+        type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
     }));
   };
 
-  const handleSubmit = async(e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log('Signup data:', formData);
-    try{
-        const userCredential = await createUserWithEmailAndPassword(
-          auth,
-          formData.email,
-          formData.password
-        );
-        console.log('User signed up:', userCredential.user);
 
-        await setDoc(doc(db, 'users', userCredential.user.uid), {
-          email: formData.email,
-          role: formData.role, 
-          createdAt: new Date(),
-        });
-        
-        alert('Signup successful! You can now log in.');
-        navigate('/');
-    }catch(error){
-        console.error('Error signing up:', error);
-        alert('Signup failed: ' + (error as Error).message);
+    if (formData.password !== formData.confirmPassword) {
+      alert("Passwords do not match.");
+      return;
+    }
+
+    try {
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.password
+      );
+
+      await setDoc(doc(db, "users", userCredential.user.uid), {
+        email: formData.email,
+        role: formData.role,
+        createdAt: new Date(),
+      });
+
+      alert("Signup successful! You can now log in.");
+      navigate("/");
+    } catch (error) {
+      alert("Signup failed: " + (error as Error).message);
     }
   };
 
@@ -97,22 +97,21 @@ const navigate = useNavigate();
 
       <div>
         <label
-          htmlFor="role"
+          htmlFor="confirmPassword"
           className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
         >
-          Role
+          Repeat Password
         </label>
-        <select
-          name="role"
-          id="role"
-          value={formData.role}
+        <input
+          type="password"
+          name="confirmPassword"
+          id="confirmPassword"
+          value={formData.confirmPassword}
           onChange={handleChange}
+          placeholder="••••••••"
           className="w-full p-2.5 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           required
-        >
-          <option value="student">Student</option>
-          <option value="admin">Teacher</option>
-        </select>
+        />
       </div>
 
       <button
@@ -123,8 +122,7 @@ const navigate = useNavigate();
       </button>
 
       <p className="text-sm text-center text-gray-500 dark:text-gray-400">
-        Already have an account?{' '}
-        <Link to="/">Log in</Link>
+        Already have an account? <Link to="/">Log in</Link>
       </p>
     </form>
   );
