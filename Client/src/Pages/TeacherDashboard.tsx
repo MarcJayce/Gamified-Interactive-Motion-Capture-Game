@@ -1,4 +1,10 @@
+import { Routes, Route, Link } from "react-router-dom";
 import "../Page-Css/TeacherDashboard.css";
+import ContentManagement from "../Components/ContentManagement"; 
+
+const Accounts = () => <h1>👥 Manage Accounts</h1>;
+const Gradebook = () => <h1>📘 Gradebook</h1>;
+const Analytics = () => <h1>📊 Analytics</h1>;
 
 const TeacherDashboard = () => {
   return (
@@ -7,16 +13,22 @@ const TeacherDashboard = () => {
       <aside className="sidebar">
         <h2>Admin Dashboard</h2>
         <nav>
-          <a href="#">👥 Accounts Management</a>
-          <a href="/Exercises">🏋️ Content Management</a>
-          <a href="#">📘 Gradebook</a>
-          <a href="#">📊 Analytics</a>
+          <Link to="accounts">👥 Accounts Management</Link>
+          <Link to="exercises">🏋️ Content Management</Link>
+          <Link to="gradebook">📘 Gradebook</Link>
+          <Link to="analytics">📊 Analytics</Link>
         </nav>
       </aside>
 
       {/* Main Content */}
       <main className="main-content">
-        <h1>Welcome, Teacher!</h1>
+        <Routes>
+          <Route path="/" element={<h1>Welcome, Teacher!</h1>} />
+          <Route path="accounts" element={<Accounts />} />
+          <Route path="exercises" element={<ContentManagement />} />
+          <Route path="gradebook" element={<Gradebook />} />
+          <Route path="analytics" element={<Analytics />} />
+        </Routes>
       </main>
     </div>
   );

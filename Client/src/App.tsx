@@ -16,7 +16,9 @@ function App() {
         <Route path="/" element={<LogInForm />} />
         <Route path="/Signup" element={<SignupForm />} />
         <Route path="/StudentDashboard" element={<StudentDashboard />} />
-        <Route path="/TeacherDashboard" element={<TeacherDashboard />} />
+        <Route path="/TeacherDashboard/*" element={<TeacherDashboard />}>
+          <Route path="exercises" element={<ContentManagement />} />
+        </Route>
         <Route path="/GameScreen" element={<GameScreen />} />
         <Route
           path="/GameScreen"
@@ -26,7 +28,6 @@ function App() {
             </RequireAuth>
           }
         />
-        <Route path="/Exercises" element={<ContentManagement />} />
       </Routes>
     </BrowserRouter>
   )
