@@ -5,6 +5,7 @@ import { gamesRouter } from '../Routes/Games';
 import { fetchExerciseRouter } from '../Routes/FetchExercise';
 import { gameConfigRouter } from '../Routes/gameConfig';
 import { fetchApprovedExerciseRouter } from '../Routes/FetchApprovedExercise';
+import { userStudentsRouter } from '../Routes/UserStudents';
 import cors from 'cors';
 
 const app = express();
@@ -19,6 +20,7 @@ app.use('/exercise', gamesRouter);
 app.use('/fetch', fetchExerciseRouter);
 app.use('/gameConfig', gameConfigRouter);
 app.use('/fetchApproved', fetchApprovedExerciseRouter);
+app.use('/userStudents', userStudentsRouter);
 
 app.listen(port, () =>
   console.log(`Server running on http://localhost:${port}`)

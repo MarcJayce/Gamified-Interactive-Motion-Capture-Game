@@ -1,12 +1,14 @@
 import './App.css'
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import LogInForm from './Pages/LoginForm'
-import SignupForm from './Pages/SignupForm';
+import SignupForm from './Pages/SignupFormAdmin';
 import StudentDashboard from './Pages/StudentDashboard';
 import TeacherDashboard from './Pages/TeacherDashboard';
 import GameScreen from './Pages/GameScreen';
 import RequireAuth from './Components/RequireAuth';
 import ContentManagement from './Components/ContentManagement';
+import AccountsManagement from './Components/AccountsManagement';
+import StudentSignupForm from './Pages/StudentSignupForm';
 
 function App() {
 
@@ -14,12 +16,14 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<LogInForm />} />
-        <Route path="/Signup" element={<SignupForm />} />
+        <Route path="/AdminSignup" element={<SignupForm />} />
         <Route path="/StudentDashboard" element={<StudentDashboard />} />
         <Route path="/TeacherDashboard/*" element={<TeacherDashboard />}>
           <Route path="exercises" element={<ContentManagement />} />
         </Route>
         <Route path="/GameScreen" element={<GameScreen />} />
+        <Route path="/Accounts" element={<AccountsManagement />} />
+        <Route path="/StudentSignup" element={<StudentSignupForm />} />
         <Route
           path="/GameScreen"
           element={
