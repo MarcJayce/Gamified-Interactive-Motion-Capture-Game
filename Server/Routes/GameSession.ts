@@ -32,18 +32,15 @@ router.post('/', async (req: Request, res: Response) => {
 });
 
 // Get Game Sessions for a Specific User
-router.get('/:uid', async (req: Request, res: Response) => {
-  const { uid } = req.params;
+router.get('/:studentEmail', async (req: Request, res: Response) => {
+  const { studentEmail } = req.params;
 
-  if (!uid) {
-    return res.status(400).json({ error: 'UID is required' });
-  }
 
   try {
     const snapshot = await db
       .collection('gameSessions')
-      .where('uid', '==', uid)
-      .orderBy('timestamp', 'desc')
+      .where('studentEmail', '==', studentEmail)
+      // .orderBy('timestamp', 'desc')
       .get();
 
     const sessions = snapshot.docs.map(doc => ({
@@ -56,5 +53,17 @@ router.get('/:uid', async (req: Request, res: Response) => {
     res.status(500).json({ error: error.message });
   }
 });
-
+// Get All Game Sessions
+router.get('/all', async (req: Request, res: Response) => {
+  try {
+    const snapshot = await db.collection('gameSessions').get();
+    const sessions = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+    res.status(200).json(sessions);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
 export { router as gameSessionRouter };

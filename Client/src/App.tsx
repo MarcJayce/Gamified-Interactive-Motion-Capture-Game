@@ -6,9 +6,8 @@ import StudentDashboard from './Pages/StudentDashboard';
 import TeacherDashboard from './Pages/TeacherDashboard';
 import GameScreen from './Pages/GameScreen';
 import RequireAuth from './Components/RequireAuth';
-import ContentManagement from './Components/ContentManagement';
-import AccountsManagement from './Components/AccountsManagement';
 import StudentSignupForm from './Pages/StudentSignupForm';
+
 
 function App() {
 
@@ -19,8 +18,6 @@ function App() {
         <Route path="/AdminSignup" element={<SignupForm />} />
         <Route path="/StudentDashboard" element={<StudentDashboard />} />
         <Route path="/TeacherDashboard/*" element={<TeacherDashboard />}>
-          <Route path="exercises" element={<ContentManagement />} />
-          <Route path="accounts" element={<AccountsManagement />} />
         </Route>
         <Route path="/GameScreen" element={<GameScreen />} />
         <Route path="/StudentSignup" element={<StudentSignupForm />} />
@@ -34,7 +31,7 @@ function App() {
         />
       </Routes>
     </BrowserRouter>
-  )
+  );
 }
 
 export default App

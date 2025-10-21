@@ -25,6 +25,7 @@ const AccountsManagement = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<Partial<Student>>({});
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     const fetchStudents = async () => {
@@ -51,6 +52,7 @@ const AccountsManagement = () => {
   const handleEditClick = (student: Student) => {
     setEditingId(student.id);
     setFormData(student);
+    setShowModal(true);
   };
 
   const handleChange = (field: keyof Student, value: string) => {
@@ -70,8 +72,7 @@ const AccountsManagement = () => {
           s.id === editingId ? ({ ...s, ...formData } as Student) : s
         )
       );
-      setEditingId(null);
-      setFormData({});
+      closeModal();
     } catch (error) {
       console.error("Error saving student:", error);
     }
@@ -90,14 +91,15 @@ const AccountsManagement = () => {
     }
   };
 
-  const handleCancel = () => {
+  const closeModal = () => {
     setEditingId(null);
     setFormData({});
+    setShowModal(false);
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-3xl font-bold text-blue-700 mb-8 text-center">
+    <div className="max-w-4xl mx-auto p-6 text-white">
+      <h1 className="text-3xl font-bold text-blue-300 mb-8 text-center">
         Accounts Management
       </h1>
 
@@ -105,17 +107,17 @@ const AccountsManagement = () => {
         {students.map((student) => (
           <div
             key={student.id}
-            className="flex justify-between items-center p-4 bg-white rounded-lg shadow border border-gray-200"
+            className="flex justify-between items-center p-4 bg-blue-800 rounded-lg shadow border border-blue-500"
           >
             <div>
-              <p className="text-lg font-semibold text-gray-800">
+              <p className="text-lg font-semibold text-white">
                 {student.name || "Unnamed"}
               </p>
-              <p className="text-sm text-gray-600">{student.email}</p>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-blue-200">{student.email}</p>
+              <p className="text-sm text-blue-300">
                 Status:{" "}
                 <span
-                  className={student.active ? "text-green-600" : "text-red-500"}
+                  className={student.active ? "text-green-400" : "text-red-400"}
                 >
                   {student.active ? "Active" : "Disabled"}
                 </span>
@@ -145,58 +147,68 @@ const AccountsManagement = () => {
         ))}
       </div>
 
-      {editingId && (
-        <div className="mt-10 p-6 bg-white border border-gray-200 rounded-lg shadow">
-          <h2 className="text-xl font-bold text-blue-700 mb-4">
-            Edit Student Info
-          </h2>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Name
-              </label>
-              <input
-                type="text"
-                value={formData.name || ""}
-                onChange={(e) => handleChange("name", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email
-              </label>
-              <input
-                type="email"
-                value={formData.email || ""}
-                onChange={(e) => handleChange("email", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Role
-              </label>
-              <input
-                type="text"
-                value={formData.role || ""}
-                onChange={(e) => handleChange("role", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-              />
-            </div>
-            <div className="flex justify-end gap-3 pt-4">
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+          <div className="bg-blue-900 text-white p-6 rounded-lg shadow-lg w-full max-w-md border border-blue-400">
+            <div className="flex justify-between items-center mb-4 border-b border-blue-500 pb-2">
+              <h2 className="text-xl font-bold text-blue-200">
+                Edit Student Info
+              </h2>
               <button
-                onClick={handleCancel}
-                className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
+                onClick={closeModal}
+                className="text-blue-300 hover:text-white text-lg font-bold"
               >
-                Cancel
+                ✖
               </button>
-              <button
-                onClick={handleSave}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-              >
-                Save
-              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-blue-200 mb-1">
+                  Name
+                </label>
+                <input
+                  type="text"
+                  value={formData.name || ""}
+                  onChange={(e) => handleChange("name", e.target.value)}
+                  className="w-full px-3 py-2 border border-blue-500 rounded-lg bg-blue-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-blue-200 mb-1">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={formData.email || ""}
+                  onChange={(e) => handleChange("email", e.target.value)}
+                  className="w-full px-3 py-2 border border-blue-500 rounded-lg bg-blue-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-blue-200 mb-1">
+                  Role
+                </label>
+                <input
+                  type="text"
+                  value={formData.role || ""}
+                  onChange={(e) => handleChange("role", e.target.value)}
+                  className="w-full px-3 py-2 border border-blue-500 rounded-lg bg-blue-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+                />
+              </div>
+              <div className="flex justify-end gap-3 pt-4">
+                <button
+                  onClick={closeModal}
+                  className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSave}
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                  Save
+                </button>
+              </div>
             </div>
           </div>
         </div>
