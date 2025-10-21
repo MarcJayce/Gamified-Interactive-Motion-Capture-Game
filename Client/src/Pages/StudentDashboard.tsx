@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { auth, db } from "../firebase";
+import { doc, getDoc } from "firebase/firestore";
 import "../Page-Css/StudentDashboard.css";
 
 const exerciseOptions = [
   "squat", "pushup", "jumpingjack", "lunge", "plank",
   "armraise", "shoulderpress", "situp", "crunch",
   "warriorpose", "treepose", "downwarddog",
-];  
+];
 
 const exerciseLabels: { [key: string]: string } = {
   squat: "Squat",
@@ -41,23 +43,34 @@ const exerciseDescriptions: { [key: string]: string } = {
 interface StudentScore {
   id: number;
   name: string;
-  scores: {
-    [exercise: string]: number; 
-  };
+  scores: { [exercise: string]: number };
 }
 
 const StudentDashboard: React.FC = () => {
-  const [tab, setTab] = useState<"activity" | "student">("activity");
+  const [tab, setTab] = useState<"profile" | "activity" | "leaderboard">("profile");
   const [students, setStudents] = useState<StudentScore[]>([]);
   const [loading, setLoading] = useState(false);
+  const [profile, setProfile] = useState<any>(null);
   const navigate = useNavigate();
 
-  // Fetch student scores 
+  // Load current student profile
   useEffect(() => {
-    if (tab === "student") {
+    const fetchProfile = async () => {
+      const user = auth.currentUser;
+      if (user) {
+        const docRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) setProfile(docSnap.data());
+      }
+    };
+    fetchProfile();
+  }, []);
+
+  // Fetch leaderboard
+  useEffect(() => {
+    if (tab === "leaderboard") {
       setLoading(true);
-      // API endpoint
-      fetch("")
+      fetch("http://localhost:3001/GameSession")
         .then((res) => res.json())
         .then((data) => {
           setStudents(data);
@@ -74,26 +87,34 @@ const StudentDashboard: React.FC = () => {
     <div className="student-dashboard">
       <header className="student-dashboard-header">
         <div className="student-dashboard-logo">🏃‍♂️</div>
-        <span className="student-dashboard-title">DASHBOARD</span>
+        <span className="student-dashboard-title">STUDENT DASHBOARD</span>
         <nav className="student-dashboard-tabs">
-          <button
-            className={tab === "activity" ? "active" : ""}
-            onClick={() => setTab("activity")}
-          >
-            ACTIVITY
-          </button>
-          <button
-            className={tab === "student" ? "active" : ""}
-            onClick={() => setTab("student")}
-          >
-            LEADERBOARDS
-          </button>
+          <button className={tab === "profile" ? "active" : ""} onClick={() => setTab("profile")}>PROFILE</button>
+          <button className={tab === "activity" ? "active" : ""} onClick={() => setTab("activity")}>ACTIVITY</button>
+          <button className={tab === "leaderboard" ? "active" : ""} onClick={() => setTab("leaderboard")}>LEADERBOARD</button>
         </nav>
       </header>
 
-      {/* Main */}
       <main className="student-dashboard-main">
-        {tab === "activity" ? (
+        {/* PROFILE TAB */}
+        {tab === "profile" && (
+          <div className="student-dashboard-profile">
+            {profile ? (
+              <div className="profile-card">
+                <h2>👤 {profile.name}</h2>
+                <p><strong>Email:</strong> {profile.email}</p>
+                <p><strong>Weight:</strong> {profile.weight} kg</p>
+                <p><strong>Height:</strong> {profile.height} cm</p>
+                <p><strong>BMI:</strong> {(profile.weight / Math.pow(profile.height / 100, 2)).toFixed(2)}</p>
+              </div>
+            ) : (
+              <p>Loading profile...</p>
+            )}
+          </div>
+        )}
+
+        {/* ACTIVITY TAB */}
+        {tab === "activity" && (
           <>
             <div className="student-dashboard-activities">
               {exerciseOptions.map((ex) => (
@@ -104,7 +125,6 @@ const StudentDashboard: React.FC = () => {
                 </div>
               ))}
             </div>
-
             <div className="student-dashboard-actions">
               <button
                 className="student-dashboard-start-btn"
@@ -114,11 +134,13 @@ const StudentDashboard: React.FC = () => {
               </button>
             </div>
           </>
-        ) : (
-          // Student Data
+        )}
+
+        {/* LEADERBOARD TAB */}
+        {tab === "leaderboard" && (
           <div className="student-dashboard-student">
             {loading ? (
-              <p>Loading student data...</p>
+              <p>Loading leaderboard...</p>
             ) : (
               <table className="student-dashboard-table">
                 <thead>
@@ -149,5 +171,6 @@ const StudentDashboard: React.FC = () => {
 };
 
 export default StudentDashboard;
+
 
 
