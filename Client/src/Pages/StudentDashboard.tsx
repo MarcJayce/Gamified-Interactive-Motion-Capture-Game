@@ -4,6 +4,7 @@ import { auth, db } from "../firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import "../Page-Css/StudentDashboard.css";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+import axios from "axios";
 interface StudentScore {
   id: string;
   name: string;
@@ -17,9 +18,15 @@ interface UserProfile {
   height: number;
 }
 
+interface Exercise {
+  key: string;
+  label: string;
+}
+
 type TabType = "profile" | "activity" | "leaderboard";
 
 const StudentDashboard: React.FC = () => {
+   const [exerciseList, setExerciseList] = useState<Exercise[]>([]);
   const [tab, setTab] = useState<TabType>("profile");
   const [students, setStudents] = useState<StudentScore[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -33,11 +40,6 @@ const StudentDashboard: React.FC = () => {
   const navigate = useNavigate();
 
   // Exercises list
-  const exerciseOptions: string[] = [
-    "squat", "pushup", "jumpingjack", "lunge", "plank",
-    "armraise", "shoulderpress", "situp", "crunch",
-    "warriorpose", "treepose", "downwarddog",
-  ];
 
   const exerciseLabels: Record<string, string> = {
     squat: "Squat",
@@ -86,6 +88,27 @@ const StudentDashboard: React.FC = () => {
 
     return () => unsubscribe();
   }, [navigate]);
+
+  useEffect(() => {
+    const fetchApprovedExercises = async () => {
+      try {
+        const configRes = await axios.get(`${API_BASE_URL}/fetchApproved`);
+        const approvedIds: string[] = configRes.data?.approvedIds ?? [];
+
+        const allRes = await axios.get(`${API_BASE_URL}/fetch`);
+        const allExercises: Exercise[] = allRes.data?.exercises ?? [];
+
+        const filtered = allExercises.filter((ex) =>
+          approvedIds.includes(ex.key)
+        );
+        setExerciseList(filtered);
+      } catch (error) {
+        console.error("Failed to fetch approved exercises:", error);
+      }
+    };
+
+    fetchApprovedExercises();
+  }, []);
 
   useEffect(() => {
     if (tab === "leaderboard") {
@@ -273,9 +296,13 @@ const StudentDashboard: React.FC = () => {
             {profile && editedProfile ? (
               <div className="profile-card">
                 <h2>👤 Profile</h2>
-                
+
                 {saveMessage && (
-                  <div className={`save-message ${saveMessage.includes('Error') ? 'error' : 'success'}`}>
+                  <div
+                    className={`save-message ${
+                      saveMessage.includes("Error") ? "error" : "success"
+                    }`}
+                  >
                     {saveMessage}
                   </div>
                 )}
@@ -283,15 +310,21 @@ const StudentDashboard: React.FC = () => {
                 {isEditing ? (
                   <div className="profile-edit-form">
                     <div className="form-group">
-                      <label><strong>Name:</strong></label>
+                      <label>
+                        <strong>Name:</strong>
+                      </label>
                       <input
                         type="text"
                         value={editedProfile.name}
-                        onChange={(e) => handleInputChange("name", e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange("name", e.target.value)
+                        }
                       />
                     </div>
                     <div className="form-group">
-                      <label><strong>Email:</strong></label>
+                      <label>
+                        <strong>Email:</strong>
+                      </label>
                       <input
                         type="email"
                         value={editedProfile.email}
@@ -301,21 +334,35 @@ const StudentDashboard: React.FC = () => {
                       <small>Email cannot be changed</small>
                     </div>
                     <div className="form-group">
-                      <label><strong>Weight (kg):</strong></label>
+                      <label>
+                        <strong>Weight (kg):</strong>
+                      </label>
                       <input
                         type="number"
                         value={editedProfile.weight}
-                        onChange={(e) => handleInputChange("weight", parseFloat(e.target.value) || 0)}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "weight",
+                            parseFloat(e.target.value) || 0
+                          )
+                        }
                         min="0"
                         step="0.1"
                       />
                     </div>
                     <div className="form-group">
-                      <label><strong>Height (cm):</strong></label>
+                      <label>
+                        <strong>Height (cm):</strong>
+                      </label>
                       <input
                         type="number"
                         value={editedProfile.height}
-                        onChange={(e) => handleInputChange("height", parseFloat(e.target.value) || 0)}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "height",
+                            parseFloat(e.target.value) || 0
+                          )
+                        }
                         min="0"
                         step="0.1"
                       />
@@ -331,13 +378,23 @@ const StudentDashboard: React.FC = () => {
                   </div>
                 ) : (
                   <div className="profile-view">
-                    <p><strong>Name:</strong> {profile.name}</p>
-                    <p><strong>Email:</strong> {profile.email}</p>
-                    <p><strong>Weight:</strong> {profile.weight} kg</p>
-                    <p><strong>Height:</strong> {profile.height} cm</p>
+                    <p>
+                      <strong>Name:</strong> {profile.name}
+                    </p>
+                    <p>
+                      <strong>Email:</strong> {profile.email}
+                    </p>
+                    <p>
+                      <strong>Weight:</strong> {profile.weight} kg
+                    </p>
+                    <p>
+                      <strong>Height:</strong> {profile.height} cm
+                    </p>
                     <p>
                       <strong>BMI:</strong>{" "}
-                      {(profile.weight / Math.pow(profile.height / 100, 2)).toFixed(2)}
+                      {(
+                        profile.weight / Math.pow(profile.height / 100, 2)
+                      ).toFixed(2)}
                     </p>
                     <button className="btn-edit" onClick={handleEditToggle}>
                       Edit Profile
@@ -355,13 +412,18 @@ const StudentDashboard: React.FC = () => {
         {tab === "activity" && (
           <>
             <div className="student-dashboard-activities">
-              {exerciseOptions.map((ex) => (
-                <div key={ex} className="student-dashboard-card">
-                  <div className="student-dashboard-icon">🎮</div>
-                  <div className="student-dashboard-name">{exerciseLabels[ex]}</div>
-                  <div className="student-dashboard-desc">{exerciseDescriptions[ex]}</div>
-                </div>
-              ))}
+              {exerciseList &&
+                exerciseList.map((ex) => (
+                  <div key={ex.key} className="student-dashboard-card">
+                    <div className="student-dashboard-icon">🎮</div>
+                    <div className="student-dashboard-name">
+                      {exerciseLabels[ex.key] || ex.key}
+                    </div>
+                    <div className="student-dashboard-desc">
+                      {exerciseDescriptions[ex.key] || "No description available."}
+                    </div>
+                  </div>
+                ))}
             </div>
             <div className="student-dashboard-actions">
               <button
@@ -406,21 +468,33 @@ const StudentDashboard: React.FC = () => {
                   <tr>
                     <th>Rank</th>
                     <th>Student</th>
-                    <th>{selectedSession === "all" ? "Total Score" : "Score"}</th>
-                    <th>{selectedSession === "all" ? "Exercises Completed" : "Exercise"}</th>
+                    <th>
+                      {selectedSession === "all" ? "Total Score" : "Score"}
+                    </th>
+                    <th>
+                      {selectedSession === "all"
+                        ? "Exercises Completed"
+                        : "Exercise"}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {getLeaderboardData().map((student, index) => (
                     <tr key={student.id}>
                       <td>
-                        {index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : index + 1}
+                        {index === 0
+                          ? "🥇"
+                          : index === 1
+                          ? "🥈"
+                          : index === 2
+                          ? "🥉"
+                          : index + 1}
                       </td>
                       <td>{student.name}</td>
                       <td>{student.totalScore}</td>
                       <td>
-                        {selectedSession === "all" 
-                          ? student.sessions 
+                        {selectedSession === "all"
+                          ? student.sessions
                           : exerciseLabels[selectedSession] || selectedSession}
                       </td>
                     </tr>
