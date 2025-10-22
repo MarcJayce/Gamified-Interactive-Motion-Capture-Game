@@ -31,7 +31,7 @@ const AccountsManagement = () => {
     const fetchStudents = async () => {
       try {
         const response = await axios.get<StudentApiResponse>(
-          "http://localhost:3001/userStudents"
+          "/api/userStudents"
         );
         const students: Student[] = response.data.students.map((s) => ({
           id: s.key,
@@ -62,7 +62,7 @@ const AccountsManagement = () => {
   const handleSave = async () => {
     if (!editingId) return;
     try {
-      await axios.put(`http://localhost:3001/userStudents/${editingId}`, {
+      await axios.put(`/api/userStudents/${editingId}`, {
         name: formData.name,
         email: formData.email,
         role: formData.role,
@@ -80,7 +80,7 @@ const AccountsManagement = () => {
 
   const handleDisable = async (id: string, currentStatus: boolean) => {
     try {
-      await axios.patch(`http://localhost:3001/userStudents/${id}/disable`, {
+      await axios.patch(`/api/userStudents/${id}/disable`, {
         active: !currentStatus,
       });
       setStudents((prev) =>

@@ -93,7 +93,7 @@ const StudentDashboard: React.FC = () => {
       
       const fetchLeaderboard = async () => {
         try {
-          const studentsResponse = await fetch("http://localhost:3001/userStudents");
+          const studentsResponse = await fetch("/api/userStudents");
           const studentsData = await studentsResponse.json();
           const allStudents = studentsData.students;
 
@@ -101,7 +101,7 @@ const StudentDashboard: React.FC = () => {
           const leaderboardPromises = allStudents.map(async (student: any) => {
             try {
               const sessionsResponse = await fetch(
-                `http://localhost:3001/gameSession/${student.email}`
+                `/api/gameSession/${student.email}`
               );
               const sessions = await sessionsResponse.json();
 
@@ -188,10 +188,10 @@ const StudentDashboard: React.FC = () => {
         });
 
         try {
-          await fetch(`http://localhost:3001/userStudents/${user.uid}`, {
-            method: 'PUT',
+          await fetch(`/api/userStudents/${user.uid}`, {
+            method: "PUT",
             headers: {
-              'Content-Type': 'application/json',
+              "Content-Type": "application/json",
             },
             body: JSON.stringify({
               name: editedProfile.name,

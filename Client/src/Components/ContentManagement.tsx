@@ -15,7 +15,7 @@ const ContentManagement = () => {
   useEffect(() => {
     const fetchExercises = async () => {
       try {
-        const response = await axios.get("http://localhost:3001/fetch");
+        const response = await axios.get("/api/fetch");
         setAvailableExercises(response.data.exercises);
       } catch (error) {
         console.error("Error fetching exercises:", error);
@@ -34,7 +34,7 @@ const ContentManagement = () => {
 
   const saveApprovedExercises = async () => {
     try {
-      const response = await axios.post("http://localhost:3001/gameConfig", {
+      const response = await axios.post("/api/gameConfig", {
         selectedExercises,
       });
       console.log("Approved exercises saved:", response.data);

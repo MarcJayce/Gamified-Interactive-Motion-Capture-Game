@@ -124,13 +124,11 @@ const Gamescreen = () => {
     const fetchApprovedExercises = async () => {
       try {
       
-        const configRes = await axios.get(
-          "http://localhost:3001/fetchApproved"
-        );
+        const configRes = await axios.get("/api/fetchApproved");
         const approvedIds: string[] = configRes.data?.approvedIds ?? [];
 
     
-        const allRes = await axios.get("http://localhost:3001/fetch");
+        const allRes = await axios.get("/api/fetch");
         const allExercises: Exercise[] = allRes.data?.exercises ?? [];
 
 
@@ -152,7 +150,7 @@ useEffect(() => {
     if (!user) return;
 
     try {
-      await axios.post("http://localhost:3001/gameSession", {
+      await axios.post("/api/gameSession", {
         uid: user.uid,
         Exercise: selectedExercise,
         Difficulty: selectedDifficulty,

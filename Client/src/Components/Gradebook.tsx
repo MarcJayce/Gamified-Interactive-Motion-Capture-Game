@@ -28,7 +28,7 @@ const StudentSessions: React.FC = () => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:3001/userStudents")
+      .get("/api/userStudents")
       .then((res) => setStudents(res.data.students))
       .catch((err) => console.error("Failed to fetch students:", err));
   }, []);
@@ -38,7 +38,7 @@ const StudentSessions: React.FC = () => {
     setLoading(true);
     setShowModal(true);
     axios
-      .get(`http://localhost:3001/gameSession/${student.email}`)
+      .get(`/api/gameSession/${student.email}`)
       .then((res) => setSessions(res.data))
       .catch((err) => console.error("Failed to fetch sessions:", err))
       .finally(() => setLoading(false));
