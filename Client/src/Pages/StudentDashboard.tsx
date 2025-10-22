@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { auth, db } from "../firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import "../Page-Css/StudentDashboard.css";
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 interface StudentScore {
   id: string;
   name: string;
@@ -93,7 +93,7 @@ const StudentDashboard: React.FC = () => {
       
       const fetchLeaderboard = async () => {
         try {
-          const studentsResponse = await fetch("/api/userStudents");
+          const studentsResponse = await fetch(`${API_BASE_URL}/userStudents`);
           const studentsData = await studentsResponse.json();
           const allStudents = studentsData.students;
 
@@ -101,7 +101,7 @@ const StudentDashboard: React.FC = () => {
           const leaderboardPromises = allStudents.map(async (student: any) => {
             try {
               const sessionsResponse = await fetch(
-                `/api/gameSession/${student.email}`
+                `${API_BASE_URL}/gameSession/${student.email}`
               );
               const sessions = await sessionsResponse.json();
 
@@ -188,7 +188,7 @@ const StudentDashboard: React.FC = () => {
         });
 
         try {
-          await fetch(`/api/userStudents/${user.uid}`, {
+          await fetch(`${API_BASE_URL}/userStudents/${user.uid}`, {
             method: "PUT",
             headers: {
               "Content-Type": "application/json",

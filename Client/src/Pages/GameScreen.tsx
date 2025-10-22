@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import "../Page-Css/GameScreen.css";
 import axios from "axios";
 import { auth } from "../firebase";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 
 
 const API_KEY = import.meta.env.VITE_POSETRACKER_KEY;
@@ -124,11 +126,11 @@ const Gamescreen = () => {
     const fetchApprovedExercises = async () => {
       try {
       
-        const configRes = await axios.get("/api/fetchApproved");
+        const configRes = await axios.get(`${API_BASE_URL}/fetchApproved`);
         const approvedIds: string[] = configRes.data?.approvedIds ?? [];
 
     
-        const allRes = await axios.get("/api/fetch");
+        const allRes = await axios.get(`${API_BASE_URL}/fetch`);
         const allExercises: Exercise[] = allRes.data?.exercises ?? [];
 
 
@@ -150,7 +152,7 @@ useEffect(() => {
     if (!user) return;
 
     try {
-      await axios.post("/api/gameSession", {
+      await axios.post(`${API_BASE_URL}/gameSession`, {
         uid: user.uid,
         Exercise: selectedExercise,
         Difficulty: selectedDifficulty,

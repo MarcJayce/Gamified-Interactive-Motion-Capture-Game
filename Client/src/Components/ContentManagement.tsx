@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 interface Exercise {
   key: string;
@@ -15,7 +16,7 @@ const ContentManagement = () => {
   useEffect(() => {
     const fetchExercises = async () => {
       try {
-        const response = await axios.get("/api/fetch");
+        const response = await axios.get(`${API_BASE_URL}/fetch`);
         setAvailableExercises(response.data.exercises);
       } catch (error) {
         console.error("Error fetching exercises:", error);
@@ -34,7 +35,7 @@ const ContentManagement = () => {
 
   const saveApprovedExercises = async () => {
     try {
-      const response = await axios.post("/api/gameConfig", {
+      const response = await axios.post(`${API_BASE_URL}/gameConfig`, {
         selectedExercises,
       });
       console.log("Approved exercises saved:", response.data);
