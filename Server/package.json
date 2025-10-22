@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon --exec ts-node src/Server.ts",
-    "start": "ts-node src/Server.ts",
-    "seed": "ts-node src/Seeders/Seeder.ts"
+    "dev": "nodemon --exec ts-node Src/Server.ts",
+    "start": "ts-node Src/Server.ts",
+    "seed": "ts-node Src/Seeders/Seeder.ts"
   },
   "keywords": [],
   "author": "",
