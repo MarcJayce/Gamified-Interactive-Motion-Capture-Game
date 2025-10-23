@@ -32,14 +32,14 @@ router.post('/', async (req: Request, res: Response) => {
 });
 
 // Get Game Sessions for a Specific User
-router.get('/:studentEmail', async (req: Request, res: Response) => {
-  const { studentEmail } = req.params;
+router.get('/:userId', async (req: Request, res: Response) => {
+  const { userId } = req.params;
 
 
   try {
     const snapshot = await db
       .collection('gameSessions')
-      .where('studentEmail', '==', studentEmail)
+      .where('userId', '==', userId)
       // .orderBy('timestamp', 'desc')
       .get();
 
