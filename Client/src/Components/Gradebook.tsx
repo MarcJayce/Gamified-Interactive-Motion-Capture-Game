@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 interface Student {
-  userId: string;
+  uid: string;
   name: string;
   email: string;
   role: string;
@@ -38,7 +38,7 @@ const StudentSessions: React.FC = () => {
     setLoading(true);
     setShowModal(true);
     axios
-      .get(`${API_BASE_URL}/gameSession/${student.userId}`)
+      .get(`${API_BASE_URL}/gameSession/${student.email}`)
       .then((res) => setSessions(res.data))
       .catch((err) => console.error("Failed to fetch sessions:", err))
       .finally(() => setLoading(false));
@@ -56,7 +56,7 @@ const StudentSessions: React.FC = () => {
       <ul className="space-y-2 mb-6">
         {students.map((student) => (
           <li
-            key={student.userId}
+            key={student.uid}
             className="cursor-pointer p-3 border border-blue-500 rounded hover:bg-blue-700 bg-blue-600 text-white transition"
             onClick={() => handleStudentClick(student)}
           >
