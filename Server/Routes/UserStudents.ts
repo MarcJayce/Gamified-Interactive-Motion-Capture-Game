@@ -26,10 +26,28 @@ router.put('/:id', async (req: Request, res: Response) => {
   try {
     const userRef = db.collection('users').doc(id);
     await userRef.update({ name, email, role });
-    res.json({ message: 'Student updated successfully' });
+
+    // Update all gameSessions linked to this userId
+    const snapshot = await db
+      .collection('gameSessions')
+      .where('userId', '==', id)
+      .get();
+
+    if (!snapshot.empty) {
+      const batch = db.batch();
+      snapshot.forEach(doc => {
+        batch.update(doc.ref, {
+          studentEmail: email,
+          studentName: name,
+        });
+      });
+      await batch.commit();
+    }
+
+    res.json({ message: 'Student and related game sessions updated successfully' });
   } catch (error) {
-    console.error('Error updating student:', error);
-    res.status(500).json({ error: 'Failed to update student' });
+    console.error('Error updating student or sessions:', error);
+    res.status(500).json({ error: 'Failed to update student or sessions' });
   }
 });
 
