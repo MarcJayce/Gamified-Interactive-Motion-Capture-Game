@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import admin from '../Src/Firebase';
+import { getAuth } from 'firebase-admin/auth';
 
 const router = Router();
 const db = admin.firestore();
@@ -26,6 +27,13 @@ router.put('/:id', async (req: Request, res: Response) => {
   try {
     const userRef = db.collection('users').doc(id);
     await userRef.update({ name, email, role });
+
+    // 🔐 Update Firebase Authentication user
+    await getAuth().updateUser(id, {
+      displayName: name,
+      email: email,
+    });
+
 
     // Update all gameSessions linked to this userId
     const snapshot = await db
