@@ -73,5 +73,25 @@ router.patch('/:id/disable', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/:uid', async (req: Request, res: Response) => {
+  const { uid } = req.params;
 
+  try {
+    const snapshot = await db.collection('users').doc(uid).get();
+
+    if (!snapshot.exists) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const userData = snapshot.data();
+    if (!userData || userData.role !== 'student') {
+      return res.status(403).json({ error: 'User is not a student' });
+    }
+
+    res.json(userData);
+  } catch (error) {
+    console.error('Error fetching user student:', error);
+    res.status(500).json({ error: 'Failed to fetch user student' });
+  }
+});
 export { router as userStudentsRouter };    
