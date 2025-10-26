@@ -6,7 +6,7 @@ const db = admin.firestore();
 
 // Upload Game Session Data
 router.post('/', async (req: Request, res: Response) => {
-  const { userId,Exercise, Difficulty, TimeLimit,TotalReps, Score, StudentEmail, StudentName } = req.body;
+  const { userId,Exercise, Difficulty, TimeLimit,TotalReps, Score, studentEmail, studentName } = req.body;
 
   if (!userId) {
     return res.status(400).json({ error: 'Invalid payload' });
@@ -19,8 +19,8 @@ router.post('/', async (req: Request, res: Response) => {
       TimeLimit,
       TotalReps,
       Score,
-      StudentEmail,
-      StudentName,
+      studentEmail,
+      studentName,
       timestamp: Date.now(),
     });
 

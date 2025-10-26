@@ -49,6 +49,9 @@ const Gamescreen = () => {
   const [sessionFinished, setSessionFinished] = useState(false);
   const [timer, setTimer] = useState(0);
   const [computedScore, setComputedScore] = useState<number | null>(null);
+  const [email, setEmail] = useState("");
+  const [studentName, setStudentName] = useState("");
+ 
 
   const repsRef = useRef(repsCounter);
   useEffect(() => { repsRef.current = repsCounter; }, [repsCounter]);
@@ -189,6 +192,8 @@ const Gamescreen = () => {
     setComputedScore(null);
   };
 
+    
+
   useEffect(() => {
     const fetchApprovedExercises = async () => {
       try {
@@ -212,20 +217,46 @@ const Gamescreen = () => {
 
     fetchApprovedExercises();
   }, []);
-
 useEffect(() => {
-  const handleUpload = async () => {
+  const fetchUserStudents = async () => {
     const user = auth.currentUser;
     if (!user) return;
 
     try {
+      const response = await axios.get(
+        `${API_BASE_URL}/userStudents/${user.uid}`
+      );
+      const studentData = response.data;
+
+      setEmail(studentData.email);
+      setStudentName(studentData.name);
+    } catch (err) {
+      console.error("Failed to fetch user students:", err);
+      
+    }
+  };
+
+  fetchUserStudents();
+}, []);
+useEffect(() => {
+  const handleUpload = async () => {
+    const user = auth.currentUser;
+    if (!user) return;
+    // Only upload if we have the student data
+    if (!email || !studentName) {
+      console.log("Waiting for student data...");
+      return;
+    }
+    try {
       await axios.post(`${API_BASE_URL}/gameSession`, {
-        uid: user.uid,
+        userId: user.uid,
         Exercise: selectedExercise,
         Difficulty: selectedDifficulty,
         TimeLimit: selectedTimeLimit,
         TotalReps: repsCounter,
         Score: computedScore,
+        studentEmail: email,
+        studentName: studentName,
       });
       console.log("Session uploaded");
     } catch (err) {
@@ -236,7 +267,9 @@ useEffect(() => {
   if (sessionFinished) {
     handleUpload();
   }
-}, [sessionFinished, selectedExercise, selectedDifficulty, selectedTimeLimit, repsCounter, computedScore]);
+
+
+}, [sessionFinished, selectedExercise, selectedDifficulty, selectedTimeLimit, repsCounter, computedScore, email, studentName]);
 
   return (
     <div className="container">
