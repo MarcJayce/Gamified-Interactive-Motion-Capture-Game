@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 interface Student {
   uid: string;
   name: string;
@@ -28,7 +28,7 @@ const StudentSessions: React.FC = () => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:3001/userStudents")
+      .get(`${API_BASE_URL}/userStudents`)
       .then((res) => setStudents(res.data.students))
       .catch((err) => console.error("Failed to fetch students:", err));
   }, []);
@@ -38,7 +38,7 @@ const StudentSessions: React.FC = () => {
     setLoading(true);
     setShowModal(true);
     axios
-      .get(`http://localhost:3001/gameSession/${student.email}`)
+      .get(`${API_BASE_URL}/gameSession/${student.email}`)
       .then((res) => setSessions(res.data))
       .catch((err) => console.error("Failed to fetch sessions:", err))
       .finally(() => setLoading(false));

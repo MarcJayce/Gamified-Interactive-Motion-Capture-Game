@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 type Student = {
   id: string;
   name?: string;
@@ -31,7 +33,7 @@ const AccountsManagement = () => {
     const fetchStudents = async () => {
       try {
         const response = await axios.get<StudentApiResponse>(
-          "http://localhost:3001/userStudents"
+          `${API_BASE_URL}/userStudents`
         );
         const students: Student[] = response.data.students.map((s) => ({
           id: s.key,
@@ -62,7 +64,7 @@ const AccountsManagement = () => {
   const handleSave = async () => {
     if (!editingId) return;
     try {
-      await axios.put(`http://localhost:3001/userStudents/${editingId}`, {
+      await axios.put(`${API_BASE_URL}/userStudents/${editingId}`, {
         name: formData.name,
         email: formData.email,
         role: formData.role,
@@ -80,7 +82,7 @@ const AccountsManagement = () => {
 
   const handleDisable = async (id: string, currentStatus: boolean) => {
     try {
-      await axios.patch(`http://localhost:3001/userStudents/${id}/disable`, {
+      await axios.patch(`${API_BASE_URL}/userStudents/${id}/disable`, {
         active: !currentStatus,
       });
       setStudents((prev) =>

@@ -6,19 +6,21 @@ const db = admin.firestore();
 
 // Upload Game Session Data
 router.post('/', async (req: Request, res: Response) => {
-  const { uid,Exercise, Difficulty, TimeLimit,TotalReps, Score } = req.body;
+  const { userId,exerciseKey, difficulty, timeLimit,repsCount, score, studentEmail, studentName } = req.body;
 
-  if (!uid) {
+  if (!userId) {
     return res.status(400).json({ error: 'Invalid payload' });
   }
   try {
     const newSession = await db.collection('gameSessions').add({
-      uid,
-      Exercise,
-      Difficulty,
-      TimeLimit,
-      TotalReps,
-      Score,
+      userId,
+      exerciseKey,
+      difficulty,
+      timeLimit,
+      repsCount,
+      score,
+      studentEmail,
+      studentName,
       timestamp: Date.now(),
     });
 
