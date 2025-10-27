@@ -90,7 +90,7 @@ const StudentDashboard: React.FC = () => {
   useEffect(() => {
     if (tab === "leaderboard") {
       setLoading(true);
-      
+
       const fetchLeaderboard = async () => {
         try {
           const studentsResponse = await fetch("http://localhost:3001/userStudents");
@@ -129,11 +129,11 @@ const StudentDashboard: React.FC = () => {
           });
 
           const leaderboardData = await Promise.all(leaderboardPromises);
-          
-          const studentsWithScores = leaderboardData.filter(student => 
+
+          const studentsWithScores = leaderboardData.filter(student =>
             Object.keys(student.scores).length > 0
           );
-          
+
           setStudents(studentsWithScores);
 
           const exercises = new Set<string>();
@@ -273,7 +273,7 @@ const StudentDashboard: React.FC = () => {
             {profile && editedProfile ? (
               <div className="profile-card">
                 <h2>👤 Profile</h2>
-                
+
                 {saveMessage && (
                   <div className={`save-message ${saveMessage.includes('Error') ? 'error' : 'success'}`}>
                     {saveMessage}
@@ -401,32 +401,32 @@ const StudentDashboard: React.FC = () => {
             ) : students.length === 0 ? (
               <p>No scores available yet.</p>
             ) : (
-              <table className="student-dashboard-table">
-                <thead>
-                  <tr>
-                    <th>Rank</th>
-                    <th>Student</th>
-                    <th>{selectedSession === "all" ? "Total Score" : "Score"}</th>
-                    <th>{selectedSession === "all" ? "Exercises Completed" : "Exercise"}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {getLeaderboardData().map((student, index) => (
-                    <tr key={student.id}>
-                      <td>
-                        {index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : index + 1}
-                      </td>
-                      <td>{student.name}</td>
-                      <td>{student.totalScore}</td>
-                      <td>
-                        {selectedSession === "all" 
-                          ? student.sessions 
-                          : exerciseLabels[selectedSession] || selectedSession}
-                      </td>
+              <div className="leaderboard-wrapper">
+                <table className="student-dashboard-table">
+                  <thead>
+                    <tr>
+                      <th>Rank</th>
+                      <th>Student</th>
+                      <th>{selectedSession === "all" ? "Total Score" : "Score"}</th>
+                      <th>{selectedSession === "all" ? "Exercises Completed" : "Exercise"}</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {getLeaderboardData().map((student, index) => (
+                      <tr key={student.id}>
+                        <td>{index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : index + 1}</td>
+                        <td>{student.name}</td>
+                        <td>{student.totalScore}</td>
+                        <td>
+                          {selectedSession === "all"
+                            ? student.sessions
+                            : exerciseLabels[selectedSession] || selectedSession}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
         )}
