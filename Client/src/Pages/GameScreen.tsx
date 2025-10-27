@@ -250,11 +250,11 @@ useEffect(() => {
     try {
       await axios.post(`${API_BASE_URL}/gameSession`, {
         userId: user.uid,
-        Exercise: selectedExercise,
-        Difficulty: selectedDifficulty,
-        TimeLimit: selectedTimeLimit,
-        TotalReps: repsCounter,
-        Score: computedScore,
+        exerciseKey: selectedExercise,
+        difficulty: selectedDifficulty,
+        timeLimit: selectedTimeLimit,
+        repsCount: repsCounter,
+        score: computedScore,
         studentEmail: email,
         studentName: studentName,
       });
@@ -272,36 +272,55 @@ useEffect(() => {
 }, [sessionFinished, selectedExercise, selectedDifficulty, selectedTimeLimit, repsCounter, computedScore, email, studentName]);
 
   return (
-    <div className="container">
+    <div className="p-6 max-w-5xl mx-auto text-white">
       {!selectedExercise || !selectedDifficulty || !selectedTimeLimit ? (
-        <div className="selection">
-          <h2>Choose Your Exercise</h2>
-          {exerciseList && exerciseList.map((ex) => (
+        <div className="space-y-6">
+          <h2 className="text-2xl font-semibold text-blue-300">
+            🏋️ Choose Your Exercise
+          </h2>
+          {exerciseList &&
+            exerciseList.map((ex) => (
               <button
                 key={ex.key}
-                className={selectedExercise === ex.key ? "selected" : "option"}
+                className={`px-4 py-2 rounded border transition font-medium ${
+                  selectedExercise === ex.key
+                    ? "bg-blue-700 border-blue-400 text-white"
+                    : "bg-blue-600 border-blue-500 text-white hover:bg-blue-700"
+                }`}
                 onClick={() => setSelectedExercise(ex.key)}
               >
                 {ex.label}
               </button>
             ))}
 
-          <h2>Choose Difficulty</h2>
+          <h2 className="text-2xl font-semibold text-blue-300">
+            🎯 Choose Difficulty
+          </h2>
           {["easy", "medium", "hard"].map((level) => (
             <button
               key={level}
-              className={selectedDifficulty === level ? "selected" : "option"}
+              className={`px-4 py-2 rounded border transition font-medium capitalize ${
+                selectedDifficulty === level
+                  ? "bg-blue-700 border-blue-400 text-white"
+                  : "bg-blue-600 border-blue-500 text-white hover:bg-blue-700"
+              }`}
               onClick={() => setSelectedDifficulty(level)}
             >
               {level}
             </button>
           ))}
 
-          <h2>Choose Time Limit</h2>
+          <h2 className="text-2xl font-semibold text-blue-300">
+            ⏱️ Choose Time Limit
+          </h2>
           {timeLimitOptions.map(({ label, value }) => (
             <button
               key={value}
-              className={selectedTimeLimit === value ? "selected" : "option"}
+              className={`px-4 py-2 rounded border transition font-medium ${
+                selectedTimeLimit === value
+                  ? "bg-blue-700 border-blue-400 text-white"
+                  : "bg-blue-600 border-blue-500 text-white hover:bg-blue-700"
+              }`}
               onClick={() => setSelectedTimeLimit(value)}
             >
               {label}
@@ -309,13 +328,21 @@ useEffect(() => {
           ))}
         </div>
       ) : sessionFinished ? (
-        <div className="summary">
-          <h2>🏁 Session Complete!</h2>
-          <p>Exercise: {exerciseList.find((ex) => ex.key === selectedExercise)?.label || "Unknown"}</p>
+        <div className="space-y-4 bg-blue-900 p-6 rounded-lg border border-blue-400 shadow-xl">
+          <h2 className="text-2xl font-bold text-blue-300">
+            🏁 Session Complete!
+          </h2>
+          <p>
+            Exercise:{" "}
+            {exerciseList.find((ex) => ex.key === selectedExercise)?.label ||
+              "Unknown"}
+          </p>
           <p>Difficulty: {selectedDifficulty}</p>
           <p>Time Limit: {formatTime(selectedTimeLimit || 0)}</p>
           <p>Total Reps: {repsCounter}</p>
-          <p>Score: {computedScore !== null ? `${computedScore}/100` : "N/A"}</p>
+          <p>
+            Score: {computedScore !== null ? `${computedScore}/100` : "N/A"}
+          </p>
           <p>
             {computedScore !== null
               ? computedScore > 85
@@ -325,7 +352,10 @@ useEffect(() => {
                 : "🛠️ Needs improvement"
               : ""}
           </p>
-          <button className="start" onClick={resetSession}>
+          <button
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded transition"
+            onClick={resetSession}
+          >
             Restart
           </button>
         </div>
@@ -341,17 +371,28 @@ useEffect(() => {
             {!sessionStarted ? (
               <>
                 <p>🧍 Waiting for correct posture...</p>
-                <p>{poseTrackerInfos?.message || "Adjust your position to be detected"}</p>
-                <p>Expected Direction: {poseTrackerInfos?.direction || "Unknown"}</p>
+                <p>
+                  {poseTrackerInfos?.message ||
+                    "Adjust your position to be detected"}
+                </p>
+                <p>
+                  Expected Direction: {poseTrackerInfos?.direction || "Unknown"}
+                </p>
               </>
             ) : (
               <>
                 <p>Status: AI Running</p>
                 <p>Counter: {repsCounter}</p>
                 <p>
-                  ⏱️ Timer: {formatTime(timer)} / {formatTime(selectedTimeLimit || 0)}
+                  ⏱️ Timer: {formatTime(timer)} /{" "}
+                  {formatTime(selectedTimeLimit || 0)}
                 </p>
-                <p>Live Score: {computedScore !== null ? `${computedScore}/100` : "Calculating..."}</p>
+                <p>
+                  Live Score:{" "}
+                  {computedScore !== null
+                    ? `${computedScore}/100`
+                    : "Calculating..."}
+                </p>
               </>
             )}
           </div>
