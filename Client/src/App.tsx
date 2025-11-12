@@ -7,6 +7,7 @@ import TeacherDashboard from './Pages/TeacherDashboard';
 import GameScreen from './Pages/GameScreen';
 import RequireAuth from './Components/RequireAuth';
 import StudentSignupForm from './Pages/StudentSignupForm';
+import ProfilePage from './Pages/ProfilePage';
 
 
 function App() {
@@ -19,8 +20,8 @@ function App() {
         <Route path="/StudentDashboard" element={<StudentDashboard />} />
         <Route path="/TeacherDashboard/*" element={<TeacherDashboard />}>
         </Route>
-        <Route path="/GameScreen" element={<GameScreen />} />
         <Route path="/StudentSignup" element={<StudentSignupForm />} />
+        <Route path="/Profile" element={<ProfilePage />} />
         <Route
           path="/GameScreen"
           element={

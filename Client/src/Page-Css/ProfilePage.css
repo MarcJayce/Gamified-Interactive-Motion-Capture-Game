@@ -1,0 +1,5 @@
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  background-color: #f8fafc; /* Tailwind bg-gray-50 */
+}

@@ -1,21 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { auth, db } from "../firebase";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
 import "../Page-Css/StudentDashboard.css";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 import axios from "axios";
+import ProfilePage from "./ProfilePage";
+import { signOut } from "firebase/auth";
+import { auth } from "../firebase"; // Adjust the import based on your project structure
+
 interface StudentScore {
   id: string;
   name: string;
   scores: Record<string, number>;
-}
-
-interface UserProfile {
-  name: string;
-  email: string;
-  weight: number;
-  height: number;
 }
 
 interface Exercise {
@@ -26,17 +21,13 @@ interface Exercise {
 type TabType = "profile" | "activity" | "leaderboard";
 
 const StudentDashboard: React.FC = () => {
-   const [exerciseList, setExerciseList] = useState<Exercise[]>([]);
+  const [exerciseList, setExerciseList] = useState<Exercise[]>([]);
   const [tab, setTab] = useState<TabType>("profile");
+  const [showSettings, setShowSettings] = useState(false);
   const [students, setStudents] = useState<StudentScore[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [isEditing, setIsEditing] = useState<boolean>(false);
-  const [editedProfile, setEditedProfile] = useState<UserProfile | null>(null);
   const [selectedSession, setSelectedSession] = useState<string>("all");
   const [availableSessions, setAvailableSessions] = useState<string[]>([]);
-  const [saveMessage, setSaveMessage] = useState<string>("");
-
   const navigate = useNavigate();
 
   // Exercises list
@@ -72,24 +63,6 @@ const StudentDashboard: React.FC = () => {
   };
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(async (user) => {
-      if (user) {
-        const docRef = doc(db, "users", user.uid);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          const profileData = docSnap.data() as UserProfile;
-          setProfile(profileData);
-          setEditedProfile(profileData);
-        }
-      } else {
-        navigate("/login");
-      }
-    });
-
-    return () => unsubscribe();
-  }, [navigate]);
-
-  useEffect(() => {
     const fetchApprovedExercises = async () => {
       try {
         const configRes = await axios.get(`${API_BASE_URL}/fetchApproved`);
@@ -113,14 +86,14 @@ const StudentDashboard: React.FC = () => {
   useEffect(() => {
     if (tab === "leaderboard") {
       setLoading(true);
-      
+
       const fetchLeaderboard = async () => {
         try {
           const studentsResponse = await fetch(`${API_BASE_URL}/userStudents`);
           const studentsData = await studentsResponse.json();
           const allStudents = studentsData.students;
 
-          // Fetch sessions for each student 
+          // Fetch sessions for each student
           const leaderboardPromises = allStudents.map(async (student: any) => {
             try {
               const sessionsResponse = await fetch(
@@ -142,6 +115,7 @@ const StudentDashboard: React.FC = () => {
                 scores: scoresByExercise,
               };
             } catch (err) {
+              console.error(`Failed to fetch sessions for ${student.email}:`, err);
 
               return {
                 id: student.uid,
@@ -152,11 +126,11 @@ const StudentDashboard: React.FC = () => {
           });
 
           const leaderboardData = await Promise.all(leaderboardPromises);
-          
-          const studentsWithScores = leaderboardData.filter(student => 
+
+          const studentsWithScores = leaderboardData.filter((student) =>
             Object.keys(student.scores).length > 0
           );
-          
+
           setStudents(studentsWithScores);
 
           const exercises = new Set<string>();
@@ -176,67 +150,6 @@ const StudentDashboard: React.FC = () => {
       fetchLeaderboard();
     }
   }, [tab]);
-
-  // Handle profile edit
-  const handleEditToggle = () => {
-    if (isEditing) {
-      setEditedProfile(profile);
-    }
-    setIsEditing(!isEditing);
-    setSaveMessage("");
-  };
-
-  // Handle input changes
-  const handleInputChange = (field: keyof UserProfile, value: string | number) => {
-    if (editedProfile) {
-      setEditedProfile({
-        ...editedProfile,
-        [field]: value,
-      });
-    }
-  };
-
-  // Save profile changes
-  const handleSaveProfile = async () => {
-    if (!editedProfile) return;
-
-    try {
-      const user = auth.currentUser;
-      if (user) {
-        const docRef = doc(db, "users", user.uid);
-        await updateDoc(docRef, {
-          name: editedProfile.name,
-          weight: Number(editedProfile.weight),
-          height: Number(editedProfile.height),
-        });
-
-        try {
-          await fetch(`${API_BASE_URL}/userStudents/${user.uid}`, {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              name: editedProfile.name,
-              email: editedProfile.email,
-              weight: Number(editedProfile.weight),
-              height: Number(editedProfile.height),
-            }),
-          });
-        } catch (apiError) {
-          console.warn("Backend API update failed:", apiError);
-        }
-
-        setProfile(editedProfile);
-        setIsEditing(false);
-        setSaveMessage("Profile updated successfully!");
-        setTimeout(() => setSaveMessage(""), 3000);
-      }
-    } catch (error) {
-      console.error("Error updating profile:", error);
-      setSaveMessage("Error updating profile. Please try again.");
-    }
-  };
 
   // get filtered leaderboard data
   const getLeaderboardData = () => {
@@ -260,193 +173,165 @@ const StudentDashboard: React.FC = () => {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigate("/");
+    } catch (error) {
+      console.error("Logout failed:", error);
+      alert("Logout failed: " + (error as Error).message);
+    }
+  };
+
   return (
-    <div className="student-dashboard">
-      {/* HEADER */}
-      <header className="student-dashboard-header">
-        <div className="student-dashboard-logo">🏃‍♂️</div>
-        <span className="student-dashboard-title">STUDENT DASHBOARD</span>
-        <nav className="student-dashboard-tabs">
-          <button
-            className={tab === "profile" ? "active" : ""}
-            onClick={() => setTab("profile")}
-          >
-            PROFILE
-          </button>
-          <button
-            className={tab === "activity" ? "active" : ""}
-            onClick={() => setTab("activity")}
-          >
-            ACTIVITY
-          </button>
-          <button
-            className={tab === "leaderboard" ? "active" : ""}
-            onClick={() => setTab("leaderboard")}
-          >
-            LEADERBOARD
-          </button>
-        </nav>
+    <div className="student-dashboard bg-white">
+      {/* header and tabs */}
+      <header className="w-full bg-indigo-900 border-b border-indigo-900 px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">🏃‍♂️</span>
+            <span className="text-2xl font-bold text-white">
+              Student Dashboard
+            </span>
+          </div>
+
+          <nav className="flex items-center gap-2">
+            <button
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                tab === "profile"
+                  ? "bg-blue-600 text-white"
+                  : "text-gray-300 hover:text-white hover:bg-gray-800"
+              }`}
+              onClick={() => setTab("profile")}
+            >
+              Profile
+            </button>
+            <button
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                tab === "activity"
+                  ? "bg-blue-600 text-white"
+                  : "text-gray-300 hover:text-white hover:bg-gray-800"
+              }`}
+              onClick={() => setTab("activity")}
+            >
+              Activity
+            </button>
+            <button
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                tab === "leaderboard"
+                  ? "bg-blue-600 text-white"
+                  : "text-gray-300 hover:text-white hover:bg-gray-800"
+              }`}
+              onClick={() => setTab("leaderboard")}
+            >
+              Leaderboard
+            </button>
+            <button
+              onClick={() => setShowSettings(true)}
+              className="p-2 ml-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
+              title="Settings"
+            >
+              ⚙️
+            </button>
+          </nav>
+        </div>
       </header>
 
-      {/* MAIN CONTENT */}
-      <main className="student-dashboard-main">
+      <main className="student-dashboard-main bg-white">
         {/* PROFILE TAB */}
-        {tab === "profile" && (
-          <div className="student-dashboard-profile">
-            {profile && editedProfile ? (
-              <div className="profile-card">
-                <h2>👤 Profile</h2>
+        {tab === "profile" && <ProfilePage />}
 
-                {saveMessage && (
-                  <div
-                    className={`save-message ${
-                      saveMessage.includes("Error") ? "error" : "success"
-                    }`}
+        {/* ACTIVITY TAB */}
+        {tab === "activity" && (
+          <div className="w-full bg-white px-4 py-6">
+            <div className="mb-8">
+              <h2 className="text-3xl font-bold text-gray-900 mb-6">
+                📋 Activity
+              </h2>
+              <p className="text-gray-600 mb-8">
+                Choose an exercise to start playing and track your progress.
+              </p>
+            </div>
+
+            {exerciseList && exerciseList.length > 0 ? (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                  {exerciseList.map((ex) => (
+                    <div
+                      key={ex.key}
+                      className="bg-white border border-gray-100 rounded-2xl p-6 hover:shadow-lg transition-shadow hover:border-blue-200 cursor-pointer group"
+                    >
+                      <div className="flex flex-col h-full">
+                        <div className="text-5xl mb-4 group-hover:scale-110 transition-transform">
+                          {ex.key === "squat"
+                            ? "🦵"
+                            : ex.key === "pushup"
+                            ? "💪"
+                            : ex.key === "lunge"
+                            ? "🏃"
+                            : "🎮"}
+                        </div>
+                        <h3 className="text-lg font-bold text-gray-900 mb-2 capitalize">
+                          {exerciseLabels[ex.key] || ex.key}
+                        </h3>
+                        <p className="text-sm text-gray-600 flex-1">
+                          {exerciseDescriptions[ex.key] ||
+                            "No description available."}
+                        </p>
+                        <div className="mt-4 pt-4 border-t border-gray-100">
+                          <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
+                            Ready to play
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex justify-center">
+                  <button
+                    onClick={() => navigate("/GameScreen")}
+                    className="px-8 py-3 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-colors"
                   >
-                    {saveMessage}
-                  </div>
-                )}
-
-                {isEditing ? (
-                  <div className="profile-edit-form">
-                    <div className="form-group">
-                      <label>
-                        <strong>Name:</strong>
-                      </label>
-                      <input
-                        type="text"
-                        value={editedProfile.name}
-                        onChange={(e) =>
-                          handleInputChange("name", e.target.value)
-                        }
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label>
-                        <strong>Email:</strong>
-                      </label>
-                      <input
-                        type="email"
-                        value={editedProfile.email}
-                        disabled
-                        className="disabled-input"
-                      />
-                      <small>Email cannot be changed</small>
-                    </div>
-                    <div className="form-group">
-                      <label>
-                        <strong>Weight (kg):</strong>
-                      </label>
-                      <input
-                        type="number"
-                        value={editedProfile.weight}
-                        onChange={(e) =>
-                          handleInputChange(
-                            "weight",
-                            parseFloat(e.target.value) || 0
-                          )
-                        }
-                        min="0"
-                        step="0.1"
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label>
-                        <strong>Height (cm):</strong>
-                      </label>
-                      <input
-                        type="number"
-                        value={editedProfile.height}
-                        onChange={(e) =>
-                          handleInputChange(
-                            "height",
-                            parseFloat(e.target.value) || 0
-                          )
-                        }
-                        min="0"
-                        step="0.1"
-                      />
-                    </div>
-                    <div className="profile-actions">
-                      <button className="btn-save" onClick={handleSaveProfile}>
-                        Save Changes
-                      </button>
-                      <button className="btn-cancel" onClick={handleEditToggle}>
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="profile-view">
-                    <p>
-                      <strong>Name:</strong> {profile.name}
-                    </p>
-                    <p>
-                      <strong>Email:</strong> {profile.email}
-                    </p>
-                    <p>
-                      <strong>Weight:</strong> {profile.weight} kg
-                    </p>
-                    <p>
-                      <strong>Height:</strong> {profile.height} cm
-                    </p>
-                    <p>
-                      <strong>BMI:</strong>{" "}
-                      {(
-                        profile.weight / Math.pow(profile.height / 100, 2)
-                      ).toFixed(2)}
-                    </p>
-                    <button className="btn-edit" onClick={handleEditToggle}>
-                      Edit Profile
-                    </button>
-                  </div>
-                )}
-              </div>
+                    Start Game →
+                  </button>
+                </div>
+              </>
             ) : (
-              <p>Loading profile...</p>
+              <div className="flex items-center justify-center py-16 bg-gray-50 rounded-2xl">
+                <div className="text-center">
+                  <div className="text-6xl mb-4 opacity-40">🎮</div>
+                  <p className="text-lg font-semibold text-gray-900">
+                    No exercises available
+                  </p>
+                  <p className="text-gray-500 mt-2">
+                    Check back soon for new activities.
+                  </p>
+                </div>
+              </div>
             )}
           </div>
         )}
 
-        {/* ACTIVITY TAB */}
-        {tab === "activity" && (
-          <>
-            <div className="student-dashboard-activities">
-              {exerciseList &&
-                exerciseList.map((ex) => (
-                  <div key={ex.key} className="student-dashboard-card">
-                    <div className="student-dashboard-icon">🎮</div>
-                    <div className="student-dashboard-name">
-                      {exerciseLabels[ex.key] || ex.key}
-                    </div>
-                    <div className="student-dashboard-desc">
-                      {exerciseDescriptions[ex.key] || "No description available."}
-                    </div>
-                  </div>
-                ))}
-            </div>
-            <div className="student-dashboard-actions">
-              <button
-                className="student-dashboard-start-btn"
-                onClick={() => navigate("/GameScreen")}
-              >
-                Start Game
-              </button>
-            </div>
-          </>
-        )}
-
         {/* LEADERBOARD TAB */}
         {tab === "leaderboard" && (
-          <div className="student-dashboard-student">
-            <div className="leaderboard-header">
-              <h2>🏆 Leaderboard</h2>
-              <div className="session-filter">
-                <label htmlFor="session-select">Exercise: </label>
+          <div className="w-full bg-white px-4 py-6">
+            <div className="mb-8">
+              <h2 className="text-3xl font-bold text-gray-900 mb-6">
+                🏆 Leaderboard
+              </h2>
+              <div className="w-64">
+                <label
+                  htmlFor="session-select"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  Filter by Exercise
+                </label>
                 <select
                   id="session-select"
                   value={selectedSession}
                   onChange={(e) => setSelectedSession(e.target.value)}
+                  className="w-full px-4 py-2 rounded-lg border border-gray-200 bg-white text-black focus:outline-none focus:ring-2 focus:ring-blue-200"
                 >
                   <option value="all">All Exercises</option>
                   {availableSessions.map((session) => (
@@ -459,52 +344,99 @@ const StudentDashboard: React.FC = () => {
             </div>
 
             {loading ? (
-              <p>Loading leaderboard...</p>
+              <div className="flex items-center justify-center py-16">
+                <div className="text-center">
+                  <div className="w-12 h-12 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin mx-auto mb-4"></div>
+                  <p className="text-gray-500">Loading leaderboard...</p>
+                </div>
+              </div>
             ) : students.length === 0 ? (
-              <p>No scores available yet.</p>
+              <div className="flex items-center justify-center py-16 bg-gray-50 rounded-2xl">
+                <div className="text-center">
+                  <div className="text-6xl mb-4 opacity-40">📊</div>
+                  <p className="text-lg font-semibold text-gray-900">
+                    No scores available yet
+                  </p>
+                </div>
+              </div>
             ) : (
-              <table className="student-dashboard-table">
-                <thead>
-                  <tr>
-                    <th>Rank</th>
-                    <th>Student</th>
-                    <th>
-                      {selectedSession === "all" ? "Total Score" : "Score"}
-                    </th>
-                    <th>
-                      {selectedSession === "all"
-                        ? "Exercises Completed"
-                        : "Exercise"}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {getLeaderboardData().map((student, index) => (
-                    <tr key={student.id}>
-                      <td>
-                        {index === 0
-                          ? "🥇"
-                          : index === 1
-                          ? "🥈"
-                          : index === 2
-                          ? "🥉"
-                          : index + 1}
-                      </td>
-                      <td>{student.name}</td>
-                      <td>{student.totalScore}</td>
-                      <td>
-                        {selectedSession === "all"
-                          ? student.sessions
-                          : exerciseLabels[selectedSession] || selectedSession}
-                      </td>
+              <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-200">
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
+                        Rank
+                      </th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
+                        Student
+                      </th>
+                      <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">
+                        {selectedSession === "all" ? "Total Score" : "Score"}
+                      </th>
+                      <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">
+                        {selectedSession === "all" ? "Exercises" : "Exercise"}
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {getLeaderboardData().map((student, index) => (
+                      <tr
+                        key={student.id}
+                        className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                      >
+                        <td className="px-6 py-4 text-sm font-bold text-gray-900">
+                          {index === 0
+                            ? "🥇"
+                            : index === 1
+                            ? "🥈"
+                            : index === 2
+                            ? "🥉"
+                            : `#${index + 1}`}
+                        </td>
+                        <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                          {student.name}
+                        </td>
+                        <td className="px-6 py-4 text-right font-bold text-blue-600 text-lg">
+                          {student.totalScore}
+                        </td>
+                        <td className="px-6 py-4 text-right text-sm text-gray-600">
+                          {selectedSession === "all"
+                            ? student.sessions
+                            : exerciseLabels[selectedSession] ||
+                              selectedSession}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
         )}
       </main>
+
+      {/* SETTINGS MODAL */}
+      {showSettings && (
+        <div className="fixed inset-0  bg-gray-950/70 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-sm">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Settings</h2>
+
+            <button
+              onClick={handleLogout}
+              className="w-full px-6 py-3 text-sm font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300 transition-colors mb-4"
+            >
+              Logout
+            </button>
+
+            <button
+              onClick={() => setShowSettings(false)}
+              className="w-full px-6 py-3 text-sm font-semibold text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
