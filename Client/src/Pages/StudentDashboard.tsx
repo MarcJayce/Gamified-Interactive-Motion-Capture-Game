@@ -87,6 +87,7 @@ const StudentDashboard: React.FC = () => {
     if (tab === "leaderboard") {
       setLoading(true);
 
+
       const fetchLeaderboard = async () => {
         try {
           const studentsResponse = await fetch(`${API_BASE_URL}/userStudents`);
@@ -130,6 +131,7 @@ const StudentDashboard: React.FC = () => {
           const studentsWithScores = leaderboardData.filter((student) =>
             Object.keys(student.scores).length > 0
           );
+
 
           setStudents(studentsWithScores);
 
